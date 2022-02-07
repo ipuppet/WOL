@@ -14,6 +14,47 @@
         ]
     },
     {
+        "title": "SSH",
+        "items": [
+            {
+                "icon": [
+                    "command"
+                ],
+                "type": "switch",
+                "title": "SSH",
+                "key": "ssh",
+                "value": false
+            },
+            {
+                "icon": [
+                    "desktopcomputer"
+                ],
+                "type": "input",
+                "title": "Host",
+                "key": "sshHost",
+                "value": ""
+            },
+            {
+                "icon": [
+                    "person"
+                ],
+                "type": "input",
+                "title": "Username",
+                "key": "sshUsername",
+                "value": ""
+            },
+            {
+                "icon": [
+                    "eye.slash"
+                ],
+                "type": "input",
+                "title": "Password",
+                "key": "sshPassword",
+                "value": ""
+            }
+        ]
+    },
+    {
         "items": [
             {
                 "icon": [

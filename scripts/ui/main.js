@@ -9,7 +9,6 @@ const {
 class MainUI {
     constructor(kernel) {
         this.kernel = kernel
-        this.isAlertBeforeWake = this.kernel.setting.get("alertBeforeWake")
         this.listId = "mainui-list"
         this.hostsPath = "storage/hosts.json"
         this.savedHosts = []
@@ -28,7 +27,31 @@ class MainUI {
         this.savedHosts = JSON.parse(jsonString)
     }
 
-    wake(mac) {
+    wakeBySSH(mac) {
+        const host = this.kernel.setting.get("sshHost")
+        const username = this.kernel.setting.get("sshUsername")
+        const password = this.kernel.setting.get("sshPassword")
+        const command = "/usr/bin/etherwake -i br-lan " + mac
+        $ssh.connect({
+            host: host,
+            port: 22,
+            username: username,
+            password: password,
+            script: command,
+            handler: function (session, response) {
+                if (!session.connected) {
+                    $ui.error("Connection error")
+                    return
+                }
+                if (!session.authorized) {
+                    $ui.error("Authentication error")
+                    return
+                }
+            }
+        })
+    }
+
+    wakeByWOL(mac) {
         const wakeAction = () => {
             $nodejs.run({
                 path: "scripts/lib/wol.js",
@@ -48,7 +71,7 @@ class MainUI {
                 }
             })
         }
-        if (this.isAlertBeforeWake) {
+        if (this.kernel.setting.get("alertBeforeWake")) {
             $ui.alert({
                 title: $l10n("IS_WAKE_THIS"),
                 message: "MAC: " + mac,
@@ -211,7 +234,11 @@ class MainUI {
             events: {
                 didSelect: (sender, indexPath, data) => {
                     const thisData = this.listDataToThisData(data)
-                    this.wake(thisData.mac)
+                    if (this.kernel.setting.get("ssh")) {
+                        this.wakeBySSH(thisData.mac)
+                    } else {
+                        this.wakeByWOL(thisData.mac)
+                    }
                 }
             }
         }
