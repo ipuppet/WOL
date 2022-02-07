@@ -47,47 +47,29 @@ class MainUI {
                     $ui.error("Authentication error")
                     return
                 }
+                $ui.success($l10n("WAKE_SUCCESS"))
             }
         })
     }
 
     wakeByWOL(mac) {
-        const wakeAction = () => {
-            $nodejs.run({
-                path: "scripts/lib/wol.js",
-                query: { mac },
-                listener: {
-                    id: "wol.wake",
-                    handler: result => {
-                        if (result.status) {
-                            $ui.success($l10n("WAKE_SUCCESS"))
-                        } else {
-                            $ui.alert({
-                                title: $l10n("WAKE_FAILED"),
-                                message: result.error,
-                            })
-                        }
+        $nodejs.run({
+            path: "scripts/lib/wol.js",
+            query: { mac },
+            listener: {
+                id: "wol.wake",
+                handler: result => {
+                    if (result.status) {
+                        $ui.success($l10n("WAKE_SUCCESS"))
+                    } else {
+                        $ui.alert({
+                            title: $l10n("WAKE_FAILED"),
+                            message: result.error,
+                        })
                     }
                 }
-            })
-        }
-        if (this.kernel.setting.get("alertBeforeWake")) {
-            $ui.alert({
-                title: $l10n("IS_WAKE_THIS"),
-                message: "MAC: " + mac,
-                actions: [
-                    {
-                        title: $l10n("OK"),
-                        handler: () => {
-                            wakeAction()
-                        }
-                    },
-                    { title: $l10n("Cancel") }
-                ]
-            })
-        } else {
-            wakeAction()
-        }
+            }
+        })
     }
 
     addNewHost() {
@@ -234,10 +216,29 @@ class MainUI {
             events: {
                 didSelect: (sender, indexPath, data) => {
                     const thisData = this.listDataToThisData(data)
-                    if (this.kernel.setting.get("ssh")) {
-                        this.wakeBySSH(thisData.mac)
+                    const wakeAction = () => {
+                        if (this.kernel.setting.get("ssh")) {
+                            this.wakeBySSH(thisData.mac)
+                        } else {
+                            this.wakeByWOL(thisData.mac)
+                        }
+                    }
+                    if (this.kernel.setting.get("alertBeforeWake")) {
+                        $ui.alert({
+                            title: $l10n("IS_WAKE_THIS"),
+                            message: "MAC: " + thisData.mac,
+                            actions: [
+                                {
+                                    title: $l10n("OK"),
+                                    handler: () => {
+                                        wakeAction()
+                                    }
+                                },
+                                { title: $l10n("Cancel") }
+                            ]
+                        })
                     } else {
-                        this.wakeByWOL(thisData.mac)
+                        wakeAction()
                     }
                 }
             }
