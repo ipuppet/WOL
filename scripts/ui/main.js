@@ -29,7 +29,6 @@ class MainUI {
     }
 
     wake(mac) {
-        // TODO 弹窗确认
         const wakeAction = () => {
             $nodejs.run({
                 path: "scripts/lib/wol.js",
