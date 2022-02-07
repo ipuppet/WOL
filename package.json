@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "wake_on_lan": "^1.0.0"
+  }
+}

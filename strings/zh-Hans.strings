@@ -1,0 +1,26 @@
+"ALERT_INFO" = "提示";
+"NONE" = "什么都没有";
+"FAILED_TO_LOAD_VIEW" = "加载视图失败";
+"VIEW_NOT_PROVIDED" = "未提供该视图";
+"UNCATEGORIZED" = "未分类";
+
+"OK" = "好";
+"CANCEL" = "取消";
+
+"WOL" = "网络唤醒";
+"ADD_NEW" = "添加";
+"SEARCH" = "搜索";
+"INFORMATION" = "信息";
+"SAVE" = "保存";
+"SAVE_SUCCESS" = "保存成功";
+"SAVE_ERROR" = "保存失败";
+"DELETE" = "删除";
+"CONFIRM_DELETE_MSG" = "确认要删除吗？";
+"DELETE_SUCCESS" = "删除成功";
+"DELETE_ERROR" = "删除失败";
+
+"IS_WAKE_THIS" = "唤醒该机器？";
+"WAKE_SUCCESS" = "唤醒成功";
+"WAKE_FAILED" = "唤醒失败";
+
+"ALERT_BEFORE_WAKE" = "唤醒前询问";

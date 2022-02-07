@@ -1,0 +1,26 @@
+"ALERT_INFO" = "Alert";
+"NONE" = "None";
+"FAILED_TO_LOAD_VIEW" = "Faild to load view";
+"VIEW_NOT_PROVIDED" = "The view is not provided";
+"UNCATEGORIZED" = "Uncategorized";
+
+"OK" = "OK";
+"CANCEL" = "Cancel";
+
+"WOL" = "WOL";
+"ADD_NEW" = "Add";
+"SEARCH" = "Search";
+"INFORMATION" = "Information";
+"SAVE" = "Save";
+"SAVE_SUCCESS" = "Save success";
+"SAVE_ERROR" = "Save failed";
+"DELETE" = "Delete";
+"CONFIRM_DELETE_MSG" = "Are you sure you want to delete?";
+"DELETE_SUCCESS" = "Delete success";
+"DELETE_ERROR" = "Delete failed";
+
+"IS_WAKE_THIS" = "Wake up this device?";
+"WAKE_SUCCESS" = "Wake up successfully";
+"WAKE_FAILED" = "Wake up failed";
+
+"ALERT_BEFORE_WAKE" = "Alert Before Wake";
