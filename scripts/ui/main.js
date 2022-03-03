@@ -145,7 +145,19 @@ class MainUI {
         }
     }
 
-    searchAction(text) { }
+    searchAction(text) {
+        if (text === "") {
+            $(this.listId).data = this.savedHosts
+            return
+        }
+        const result = []
+        for (let host of this.savedHosts) {
+            if (host.hostname.indexOf(text) > -1) {
+                result.push(host)
+            }
+        }
+        $(this.listId).data = result
+    }
 
     getListView() {
         return {
