@@ -688,6 +688,15 @@ class BarButtonItem extends View {
     }
 
     getView() {
+        const userTapped = this.events.tapped
+        this.events.tapped = sender => {
+            if (!userTapped) return
+            userTapped({
+                start: () => this.actionStart(),
+                done: () => this.actionDone(),
+                cancel: () => this.actionCancel()
+            }, sender)
+        }
         return {
             type: "view",
             views: [
@@ -705,15 +714,7 @@ class BarButtonItem extends View {
                     },
                         this.menu ? { menu: this.menu } : {},
                         this.title?.length > 0 ? { title: this.title } : {}),
-                    events: {
-                        tapped: sender => {
-                            this.events.tapped({
-                                start: () => this.actionStart(),
-                                done: () => this.actionDone(),
-                                cancel: () => this.actionCancel()
-                            }, sender)
-                        }
-                    },
+                    events: this.events,
                     layout: $layout.fill
                 },
                 {
@@ -881,21 +882,23 @@ class NavigationItem {
     }
 
     setRightButtons(buttons) {
-        buttons.forEach(button => this.addRightButton(button.symbol, button.title, button.tapped, button.menu))
+        buttons.forEach(button => this.addRightButton(button))
         if (!this.hasbutton) this.hasbutton = true
         return this
     }
 
     setLeftButtons(buttons) {
-        buttons.forEach(button => this.addLeftButton(button.symbol, button.title, button.tapped, button.menu))
+        buttons.forEach(button => this.addLeftButton(button))
         if (!this.hasbutton) this.hasbutton = true
         return this
     }
 
-    addRightButton(symbol, title, tapped, menu) {
+    addRightButton({ symbol, title, tapped, menu, events }) {
         const barButtonItem = new BarButtonItem()
         barButtonItem
-            .setEvent("tapped", tapped)
+            .setEvents(Object.assign({
+                tapped: tapped
+            }, events))
             .setAlign(UIKit.align.right)
             .setSymbol(symbol)
             .setTitle(title)
@@ -905,10 +908,12 @@ class NavigationItem {
         return this
     }
 
-    addLeftButton(symbol, title, tapped, menu) {
+    addLeftButton({ symbol, title, tapped, menu, events }) {
         const barButtonItem = new BarButtonItem()
         barButtonItem
-            .setEvent("tapped", tapped)
+            .setEvents(Object.assign({
+                tapped: tapped
+            }, events))
             .setAlign(UIKit.align.left)
             .setSymbol(symbol)
             .setTitle(title)
@@ -1190,7 +1195,10 @@ class PageController extends Controller {
                 this.view.layout = (make, view) => {
                     make.bottom.left.right.equalTo(view.super)
                     const navigationBarHeight = this.navigationController.navigationBar.getNavigationBarHeight()
-                    const largeTitleFontSize = this.navigationController.navigationBar.largeTitleFontSize
+                    let largeTitleFontSize = this.navigationController.navigationBar.largeTitleFontSize
+                    if (this.navigationItem.largeTitleDisplayMode === NavigationItem.LargeTitleDisplayModeNever) {
+                        largeTitleFontSize = 0
+                    }
                     make.top.equalTo(navigationBarHeight + largeTitleFontSize)
                 }
             } else {
@@ -1426,7 +1434,6 @@ class Kernel {
     constructor() {
         this.startTime = Date.now()
         this.version = VERSION
-        this.name = $addin.current.name
         // 隐藏 jsbox 默认 nav 栏
         this.jsboxNavHidden = true
     }
@@ -1455,7 +1462,6 @@ class Kernel {
             console.log(message)
         }
     }
-
 
     useJsboxNav() {
         this.jsboxNavHidden = false
@@ -1680,8 +1686,41 @@ class Setting extends Controller {
     }
 
     setFooter(footer) {
-        this.footer = footer
+        this._footer = footer
         return this
+    }
+
+    set footer(footer) {
+        this._footer = footer
+    }
+
+    get footer() {
+        if (this._footer === undefined) {
+            const info = JSON.parse($file.read("/config.json")?.string)["info"]
+            this._footer = {
+                type: "view",
+                props: { height: 130 },
+                views: [
+                    {
+                        type: "label",
+                        props: {
+                            font: $font(14),
+                            text: `${$l10n("VERSION")} ${info.version} © ${info.author}`,
+                            textColor: $color({
+                                light: "#C0C0C0",
+                                dark: "#545454"
+                            }),
+                            align: $align.center
+                        },
+                        layout: make => {
+                            make.left.right.inset(0)
+                            make.top.inset(10)
+                        }
+                    }
+                ]
+            }
+        }
+        return this._footer
     }
 
     set(key, value) {
@@ -1973,7 +2012,7 @@ class Setting extends Controller {
                     events: {
                         tapped: () => {
                             $input.text({
-                                type: $kbType.number,
+                                type: $kbType.decimal,
                                 text: this.get(key),
                                 placeholder: title,
                                 handler: (text) => {
@@ -2537,18 +2576,18 @@ class Setting extends Controller {
                 tapped: () => {
                     setTimeout(() => {
                         if (this.events?.onChildPush) {
-                            this.callEvent("onChildPush", this.getListView(children), title)
+                            this.callEvent("onChildPush", this.getListView(children, {}), title)
                         } else {
                             if (this.isUseJsboxNav) {
                                 UIKit.push({
                                     title: title,
                                     bgcolor: Setting.bgcolor,
-                                    views: [this.getListView(children)]
+                                    views: [this.getListView(children, {})]
                                 })
                             } else {
                                 const pageController = new PageController()
                                 pageController
-                                    .setView(this.getListView(children))
+                                    .setView(this.getListView(children, {}))
                                     .navigationItem
                                     .setTitle(title)
                                     .addPopButton()
@@ -2630,40 +2669,16 @@ class Setting extends Controller {
         return sections
     }
 
-    getListView(structure) {
-        this.footer = this.footer ?? (() => {
-            const info = JSON.parse($file.read("/config.json")?.string)["info"]
-            return {
-                type: "view",
-                props: { height: 130 },
-                views: [
-                    {
-                        type: "label",
-                        props: {
-                            font: $font(14),
-                            text: `${$l10n("VERSION")} ${info.version} © ${info.author}`,
-                            textColor: $color({
-                                light: "#C0C0C0",
-                                dark: "#545454"
-                            }),
-                            align: $align.center
-                        },
-                        layout: make => {
-                            make.left.right.inset(0)
-                            make.top.inset(10)
-                        }
-                    }
-                ]
-            }
-        })()
+    getListView(structure, footer = this.footer) {
+        const indicatorInsets = this.isUseJsboxNav ? $insets(0, 0, 0, 0) : $insets(50, 0, 50, 0)
         return {
             type: "list",
             props: {
                 style: 2,
                 separatorInset: $insets(0, 50, 0, 10), // 分割线边距
                 rowHeight: 50,
-                indicatorInsets: $insets(50, 0, 50, 0),
-                footer: this.footer,
+                indicatorInsets: indicatorInsets, // 滚动条偏移
+                footer: footer,
                 data: this._getSections(structure ?? this.structure)
             },
             layout: $layout.fill
