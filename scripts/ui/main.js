@@ -10,66 +10,9 @@ class MainUI {
     constructor(kernel) {
         this.kernel = kernel
         this.listId = "mainui-list"
-        this.hostsPath = "storage/hosts.json"
         this.savedHosts = []
         this.editingHostInfo = {}
-        this.init()
-    }
-
-    init() {
-        if (!$file.exists(this.hostsPath)) {
-            $file.write({
-                data: $data({ string: "[]" }),
-                path: this.hostsPath
-            })
-        }
-        const jsonString = $file.read(this.hostsPath).string
-        this.savedHosts = JSON.parse(jsonString)
-    }
-
-    wakeBySSH(mac) {
-        const host = this.kernel.setting.get("sshHost")
-        const username = this.kernel.setting.get("sshUsername")
-        const password = this.kernel.setting.get("sshPassword")
-        const command = "/usr/bin/etherwake -i br-lan " + mac
-        $ssh.connect({
-            host: host,
-            port: 22,
-            username: username,
-            password: password,
-            script: command,
-            handler: function (session, response) {
-                if (!session.connected) {
-                    $ui.error("Connection error")
-                    return
-                }
-                if (!session.authorized) {
-                    $ui.error("Authentication error")
-                    return
-                }
-                $ui.success($l10n("WAKE_SUCCESS"))
-            }
-        })
-    }
-
-    wakeByWOL(mac) {
-        $nodejs.run({
-            path: "scripts/lib/wol.js",
-            query: { mac },
-            listener: {
-                id: "wol.wake",
-                handler: result => {
-                    if (result.status) {
-                        $ui.success($l10n("WAKE_SUCCESS"))
-                    } else {
-                        $ui.alert({
-                            title: $l10n("WAKE_FAILED"),
-                            message: result.error,
-                        })
-                    }
-                }
-            }
-        })
+        this.savedHosts = this.kernel.getSavedHosts()
     }
 
     addNewHost() {
@@ -121,7 +64,7 @@ class MainUI {
     saveHosts() {
         $file.write({
             data: $data({ string: JSON.stringify(this.savedHosts) }),
-            path: this.hostsPath
+            path: this.kernel.hostsPath
         })
     }
 
@@ -230,9 +173,24 @@ class MainUI {
                     const thisData = this.listDataToThisData(data)
                     const wakeAction = () => {
                         if (this.kernel.setting.get("ssh")) {
-                            this.wakeBySSH(thisData.mac)
+                            this.kernel
+                                .wakeBySSH(thisData.mac)
+                                .then(() => {
+                                    $ui.success($l10n("WAKE_SUCCESS"))
+                                }).catch(msg => {
+                                    $ui.error(msg)
+                                })
                         } else {
-                            this.wakeByWOL(thisData.mac)
+                            this.kernel
+                                .wakeByWOL(thisData.mac)
+                                .then(() => {
+                                    $ui.success($l10n("WAKE_SUCCESS"))
+                                }).catch(msg => {
+                                    $ui.alert({
+                                        title: $l10n("WAKE_FAILED"),
+                                        message: msg,
+                                    })
+                                })
                         }
                     }
                     if (this.kernel.setting.get("alertBeforeWake")) {
