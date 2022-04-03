@@ -7,7 +7,7 @@ const {
 } = require("./lib/easy-jsbox")
 
 class AppKernel extends Kernel {
-    constructor() {
+    constructor(init = true) {
         super()
         this.query = $context.query
         // FileStorage
@@ -15,8 +15,11 @@ class AppKernel extends Kernel {
         this.hostsDataFile = "hosts.json"
         // Setting
         this.setting = new Setting({ fileStorage: this.fileStorage })
-        this.setting.loadConfig().useJsboxNav()
-        this.initSettingMethods()
+        this.setting.loadConfig()
+        if (init) {
+            this.setting.useJsboxNav()
+            this.initSettingMethods()
+        }
     }
 
     wakeBySSH(mac) {
@@ -93,7 +96,7 @@ class AppKernel extends Kernel {
 
 class Siri {
     static async intents() {
-        const kernel = new AppKernel()
+        const kernel = new AppKernel(false)
         const hosts = kernel.query?.hosts ?? []
         const hostToMac = {}
         kernel.getSavedHosts().forEach(item => {
@@ -102,6 +105,12 @@ class Siri {
         for (let i = 0; i < hosts.length; i++) {
             if (hostToMac[hosts[i]]) {
                 await kernel.wakeBySSH(hostToMac[hosts[i]])
+                // sleep 1 second
+                await new Promise((resolve, _) => {
+                    $delay(1, () => {
+                        resolve()
+                    })
+                })
             }
         }
         $intents.finish(true)
