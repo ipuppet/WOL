@@ -2,6 +2,7 @@ const {
     UIKit,
     Sheet,
     Kernel,
+    FileStorage,
     Setting
 } = require("./lib/easy-jsbox")
 
@@ -9,49 +10,13 @@ class AppKernel extends Kernel {
     constructor() {
         super()
         this.query = $context.query
-        this.hostsPath = "storage/hosts.json"
-        // 初始化必要路径
-        this.initPath()
+        // FileStorage
+        this.fileStorage = new FileStorage()
+        this.hostsDataFile = "hosts.json"
         // Setting
-        this.setting = new Setting()
+        this.setting = new Setting({ fileStorage: this.fileStorage })
         this.setting.loadConfig().useJsboxNav()
         this.initSettingMethods()
-        // 检查更新
-        /* this.checkUpdate(content => {
-            $file.write({
-                data: $data({ string: content }),
-                path: "scripts/easy-jsbox.js"
-            })
-            $ui.toast("The framework has been updated.")
-        }) */
-
-        this.intents()
-    }
-
-    initPath() {
-        if (!$file.exists("storage")) {
-            $file.mkdir("storage")
-        }
-        if (!$file.exists(this.hostsPath)) {
-            $file.write({
-                data: $data({ string: "[]" }),
-                path: this.hostsPath
-            })
-        }
-    }
-
-    async intents() {
-        const hosts = this.query?.hosts ?? []
-        const hostToMac = {}
-        this.getSavedHosts().forEach(item => {
-            hostToMac[item.hostname] = item.mac
-        })
-        for (let i = 0; i < hosts.length; i++) {
-            if (hostToMac[hosts[i]]) {
-                await this.wakeBySSH(hostToMac[hosts[i]])
-            }
-        }
-        $intents.finish(true)
     }
 
     wakeBySSH(mac) {
@@ -101,8 +66,7 @@ class AppKernel extends Kernel {
     }
 
     getSavedHosts() {
-        const jsonString = $file.read(this.hostsPath).string
-        return JSON.parse(jsonString)
+        return this.fileStorage.readAsJSON("", this.hostsDataFile, [])
     }
 
     /**
@@ -124,6 +88,23 @@ class AppKernel extends Kernel {
                 .init()
                 .present()
         }
+    }
+}
+
+class Siri {
+    static async intents() {
+        const kernel = new AppKernel()
+        const hosts = kernel.query?.hosts ?? []
+        const hostToMac = {}
+        kernel.getSavedHosts().forEach(item => {
+            hostToMac[item.hostname] = item.mac
+        })
+        for (let i = 0; i < hosts.length; i++) {
+            if (hostToMac[hosts[i]]) {
+                await kernel.wakeBySSH(hostToMac[hosts[i]])
+            }
+        }
+        $intents.finish(true)
     }
 }
 
@@ -198,12 +179,10 @@ class Widget {
 
 module.exports = {
     run: () => {
-        if (
-            $app.env === $env.app
-            || $app.env === $env.action
-            || $app.env === $env.siri
-        ) {
+        if ($app.env === $env.app) {
             AppUI.renderMainUI()
+        } else if ($app.env === $env.siri) {
+            Siri.intents()
         } else if ($app.env === $env.widget) {
             Widget.renderUnsupported()
         } else {

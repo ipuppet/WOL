@@ -3,7 +3,8 @@ const {
     Setting,
     NavigationBar,
     PageController,
-    SearchBar
+    SearchBar,
+    UIKit
 } = require("../lib/easy-jsbox")
 
 class MainUI {
@@ -41,31 +42,38 @@ class MainUI {
             .setView({
                 type: "list",
                 props: {
-                    bgcolor: $color("insetGroupedBackground"),
+                    bgcolor: UIKit.scrollViewBackgroundColor,
                     style: 2,
                     rowHeight: 50,
                     separatorInset: $insets(0, 50, 0, 10), // 分割线边距
-                    indicatorInsets: $insets(NavigationBar.PageSheetNavigationBarHeight, 0, 0, 0),
+                    indicatorInsets: $insets(NavigationBar.pageSheetNavigationBarHeight, 0, 0, 0),
                     data: [
                         { title: $l10n("INFORMATION"), rows: [hostnameInput, macInput] }
                     ]
                 },
                 layout: $layout.fill
             })
-            .addNavBar($l10n("ADD_NEW"), () => {
-                this.savedHosts.push(this.editingHostInfo)
-                this.saveHosts()
-                $(this.listId).data = this.thisDataToListData()
-            }, $l10n("SAVE"))
+            .addNavBar({
+                title: $l10n("ADD_NEW"),
+                popButton: {
+                    title: $l10n("SAVE"),
+                    tapped: () => {
+                        this.savedHosts.push(this.editingHostInfo)
+                        this.saveHosts()
+                        $(this.listId).data = this.thisDataToListData()
+                    }
+                }
+            })
             .init()
             .present()
     }
 
     saveHosts() {
-        $file.write({
-            data: $data({ string: JSON.stringify(this.savedHosts) }),
-            path: this.kernel.hostsPath
-        })
+        this.kernel.fileStorage.write(
+            "",
+            this.kernel.hostsDataFile,
+            $data({ string: JSON.stringify(this.savedHosts) })
+        )
     }
 
     thisDataToListData() {
