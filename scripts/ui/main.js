@@ -1,11 +1,4 @@
-const {
-    Sheet,
-    Setting,
-    NavigationBar,
-    PageController,
-    SearchBar,
-    UIKit
-} = require("../lib/easy-jsbox")
+const { Sheet, Setting, NavigationBar, NavigationView, SearchBar, UIKit } = require("../lib/easy-jsbox")
 
 class MainUI {
     constructor(kernel) {
@@ -29,10 +22,8 @@ class MainUI {
                 return true
             },
             get: (key, _default = null) => {
-                if (Object.prototype.hasOwnProperty.call(this.editingHostInfo, key))
-                    return this.editingHostInfo[key]
-                else
-                    return _default
+                if (Object.prototype.hasOwnProperty.call(this.editingHostInfo, key)) return this.editingHostInfo[key]
+                else return _default
             }
         })
         const hostnameInput = SettingUI.createInput("hostname", ["pencil.circle", "#FF3366"], "Hostname")
@@ -47,9 +38,7 @@ class MainUI {
                     rowHeight: 50,
                     separatorInset: $insets(0, 50, 0, 10), // 分割线边距
                     indicatorInsets: $insets(NavigationBar.pageSheetNavigationBarHeight, 0, 0, 0),
-                    data: [
-                        { title: $l10n("INFORMATION"), rows: [hostnameInput, macInput] }
-                    ]
+                    data: [{ title: $l10n("INFORMATION"), rows: [hostnameInput, macInput] }]
                 },
                 layout: $layout.fill
             })
@@ -69,11 +58,7 @@ class MainUI {
     }
 
     saveHosts() {
-        this.kernel.fileStorage.write(
-            "",
-            this.kernel.hostsDataFile,
-            $data({ string: JSON.stringify(this.savedHosts) })
-        )
+        this.kernel.fileStorage.write("", this.kernel.hostsDataFile, $data({ string: JSON.stringify(this.savedHosts) }))
     }
 
     thisDataToListData() {
@@ -92,7 +77,7 @@ class MainUI {
     listDataToThisData(item) {
         return {
             hostname: item.hostname.text,
-            mac: item.mac.text,
+            mac: item.mac.text
         }
     }
 
@@ -150,7 +135,8 @@ class MainUI {
                     ]
                 },
                 actions: [
-                    { // 删除
+                    {
+                        // 删除
                         title: " " + $l10n("DELETE") + " ", // 防止JSBox自动更改成默认的删除操作
                         color: $color("red"),
                         handler: (sender, indexPath) => {
@@ -185,7 +171,8 @@ class MainUI {
                                 .wakeBySSH(thisData.mac)
                                 .then(() => {
                                     $ui.success($l10n("WAKE_SUCCESS"))
-                                }).catch(msg => {
+                                })
+                                .catch(msg => {
                                     $ui.error(msg)
                                 })
                         } else {
@@ -193,10 +180,11 @@ class MainUI {
                                 .wakeByWOL(thisData.mac)
                                 .then(() => {
                                     $ui.success($l10n("WAKE_SUCCESS"))
-                                }).catch(msg => {
+                                })
+                                .catch(msg => {
                                     $ui.alert({
                                         title: $l10n("WAKE_FAILED"),
-                                        message: msg,
+                                        message: msg
                                     })
                                 })
                         }
@@ -223,28 +211,24 @@ class MainUI {
         }
     }
 
-    getPageView() {
+    getNavigationView() {
         const searchBar = new SearchBar()
         // 初始化搜索功能
         searchBar.controller.setEvent("onChange", text => this.searchAction(text))
-        const pageController = new PageController()
-        pageController.navigationItem
-            .setTitle($l10n("WOL"))
-            .setTitleView(searchBar)
-            .setRightButtons([
-                {
-                    symbol: "plus.circle",
-                    tapped: () => this.addNewHost()
-                }
-            ])
-            .setLeftButtons([])
-        pageController
-            .navigationController
-            .navigationBar
-            .setBackgroundColor($color("primarySurface"))
-            .withoutStatusBarHeight()
-        pageController.setView(this.getListView())
-        return pageController.getPage()
+        const navigationView = new NavigationView()
+        navigationView.navigationBarItems.setTitleView(searchBar).setRightButtons([
+            {
+                symbol: "plus.circle",
+                tapped: () => this.addNewHost()
+            }
+        ])
+
+        navigationView.navigationBarTitle($l10n("WOL"))
+        navigationView.navigationBar.setBackgroundColor(UIKit.primaryViewBackgroundColor)
+        navigationView.navigationBar.withoutStatusBarHeight()
+        navigationView.setView(this.getListView())
+
+        return navigationView.getPage()
     }
 }
 

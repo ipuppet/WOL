@@ -1,6 +1,6 @@
 const query = $context.query
 
-const wol = require('wake_on_lan')
+const wol = require("wake_on_lan")
 
 const wakeFailed = error => {
     $jsbox.notify("wol.wake", {
@@ -26,4 +26,3 @@ try {
 } catch (error) {
     wakeFailed(error)
 }
-

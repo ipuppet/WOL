@@ -1,10 +1,4 @@
-const {
-    UIKit,
-    Sheet,
-    Kernel,
-    FileStorage,
-    Setting
-} = require("./lib/easy-jsbox")
+const { UIKit, Sheet, Kernel, FileStorage, Setting } = require("./lib/easy-jsbox")
 
 class AppKernel extends Kernel {
     constructor(init = true) {
@@ -135,20 +129,22 @@ class AppUI {
         ])
         const MainUI = require("./ui/main")
         const mainUI = new MainUI(kernel)
-        kernel.UIRender(mainUI.getPageView())
+        kernel.UIRender(mainUI.getNavigationView())
     }
 
     static renderUnsupported() {
         $intents.finish("不支持在此环境中运行")
         $ui.render({
-            views: [{
-                type: "label",
-                props: {
-                    text: "不支持在此环境中运行",
-                    align: $align.center
-                },
-                layout: $layout.fill
-            }]
+            views: [
+                {
+                    type: "label",
+                    props: {
+                        text: "不支持在此环境中运行",
+                        align: $align.center
+                    },
+                    layout: $layout.fill
+                }
+            ]
         })
     }
 }

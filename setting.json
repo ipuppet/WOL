@@ -48,6 +48,7 @@
                     "eye.slash"
                 ],
                 "type": "input",
+                "secure": true,
                 "title": "Password",
                 "key": "sshPassword",
                 "value": ""
