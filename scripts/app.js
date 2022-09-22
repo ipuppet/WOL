@@ -12,7 +12,6 @@ class AppKernel extends Kernel {
         this.setting.loadConfig()
         if (init) {
             this.setting.useJsboxNav()
-            this.initSettingMethods()
         }
     }
 
@@ -64,27 +63,6 @@ class AppKernel extends Kernel {
 
     getSavedHosts() {
         return this.fileStorage.readAsJSON("", this.hostsDataFile, [])
-    }
-
-    /**
-     * 注入设置中的脚本类型方法
-     */
-    initSettingMethods() {
-        this.setting.method.readme = animate => {
-            animate.touchHighlight()
-            const content = $file.read("/README.md").string
-            const sheet = new Sheet()
-            sheet
-                .setView({
-                    type: "markdown",
-                    props: { content: content },
-                    layout: (make, view) => {
-                        make.size.equalTo(view.super)
-                    }
-                })
-                .init()
-                .present()
-        }
     }
 }
 
@@ -150,26 +128,6 @@ class AppUI {
 }
 
 class Widget {
-    static widgetInstance(widget, data) {
-        if ($file.exists(`/scripts/widget/${widget}.js`)) {
-            const { Widget } = require(`./widget/${widget}.js`)
-            return new Widget(data)
-        } else {
-            return false
-        }
-    }
-
-    static renderError() {
-        $widget.setTimeline({
-            render: () => ({
-                type: "text",
-                props: {
-                    text: "Invalid argument"
-                }
-            })
-        })
-    }
-
     static renderUnsupported() {
         $widget.setTimeline({
             render: () => ({
