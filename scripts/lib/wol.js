@@ -5,7 +5,7 @@ const wol = require("wake_on_lan")
 const wakeFailed = error => {
     $jsbox.notify("wol.wake", {
         status: false,
-        error: error.message
+        error: error
     })
 }
 
@@ -17,7 +17,7 @@ const wakeSuccess = () => {
 
 try {
     wol.wake(query.mac, error => {
-        if (error) {
+        if (!error) {
             wakeSuccess()
         } else {
             wakeFailed(error)

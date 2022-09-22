@@ -53,6 +53,7 @@ class AppKernel extends Kernel {
                         if (result.status) {
                             resolve(true)
                         } else {
+                            this.error(result.error)
                             reject(result.error)
                         }
                     }
