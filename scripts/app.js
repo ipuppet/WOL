@@ -42,11 +42,11 @@ class AppKernel extends Kernel {
         })
     }
 
-    wakeByWOL(mac) {
+    wakeByWOL(mac, ip) {
         return new Promise((resolve, reject) => {
             $nodejs.run({
                 path: "scripts/lib/wol.js",
-                query: { mac },
+                query: { mac, ip },
                 listener: {
                     id: "wol.wake",
                     handler: result => {

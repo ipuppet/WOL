@@ -16,7 +16,7 @@ const wakeSuccess = () => {
 }
 
 try {
-    wol.wake(query.mac, error => {
+    wol.wake(query.mac, { address: query.ip }, error => {
         if (!error) {
             wakeSuccess()
         } else {

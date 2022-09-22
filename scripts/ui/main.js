@@ -9,8 +9,8 @@ class MainUI {
         this.savedHosts = this.kernel.getSavedHosts()
     }
 
-    addNewHost() {
-        this.editingHostInfo = {}
+    editHost(editingHostInfo, indexPath) {
+        this.editingHostInfo = indexPath ? editingHostInfo : {}
         const SettingUI = new Setting({
             structure: {},
             set: (key, value) => {
@@ -26,8 +26,16 @@ class MainUI {
                 else return _default
             }
         })
+
+        if (!indexPath) {
+            SettingUI.set("ip", "255.255.255.255")
+        }
+        const ipInput = SettingUI.createInput("ip", ["pencil.circle", "#FF3366"], "IP")
+        ipInput.views[1].props.placeholder = "255.255.255.255"
+
         const hostnameInput = SettingUI.createInput("hostname", ["pencil.circle", "#FF3366"], "Hostname")
         const macInput = SettingUI.createInput("mac", ["pencil.circle", "#FF3366"], "Mac")
+
         const sheet = new Sheet()
         sheet
             .setView({
@@ -38,7 +46,7 @@ class MainUI {
                     rowHeight: 50,
                     separatorInset: $insets(0, 50, 0, 10), // 分割线边距
                     indicatorInsets: $insets(NavigationBar.pageSheetNavigationBarHeight, 0, 0, 0),
-                    data: [{ title: $l10n("INFORMATION"), rows: [hostnameInput, macInput] }]
+                    data: [{ title: $l10n("INFORMATION"), rows: [hostnameInput, macInput, ipInput] }]
                 },
                 layout: $layout.fill
             })
@@ -47,9 +55,15 @@ class MainUI {
                 popButton: {
                     title: $l10n("SAVE"),
                     tapped: () => {
-                        this.savedHosts.push(this.editingHostInfo)
-                        this.saveHosts()
-                        $(this.listId).data = this.thisDataToListData()
+                        if (indexPath) {
+                            this.savedHosts[indexPath.row] = this.editingHostInfo
+                            this.saveHosts()
+                            $(this.listId).data = this.thisDataToListData()
+                        } else {
+                            this.savedHosts.push(this.editingHostInfo)
+                            this.saveHosts()
+                            $(this.listId).data = this.thisDataToListData()
+                        }
                     }
                 }
             })
@@ -69,6 +83,9 @@ class MainUI {
                 },
                 mac: {
                     text: item.mac
+                },
+                ip: {
+                    text: item.ip
                 }
             }
         })
@@ -77,7 +94,8 @@ class MainUI {
     listDataToThisData(item) {
         return {
             hostname: item.hostname.text,
-            mac: item.mac.text
+            mac: item.mac.text,
+            ip: item.ip.text ?? "255.255.255.255"
         }
     }
 
@@ -131,6 +149,19 @@ class MainUI {
                                 make.left.inset(15)
                                 make.bottom.inset(5)
                             }
+                        },
+                        {
+                            type: "label",
+                            props: {
+                                id: "ip",
+                                lines: 1,
+                                color: $color("lightGray"),
+                                font: $font(14)
+                            },
+                            layout: (make, view) => {
+                                make.right.inset(15)
+                                make.bottom.inset(5)
+                            }
                         }
                     ]
                 },
@@ -158,6 +189,15 @@ class MainUI {
                                 ]
                             })
                         }
+                    },
+                    {
+                        // 删除
+                        title: $l10n("EDIT"),
+                        color: $color("orange"),
+                        handler: (sender, indexPath) => {
+                            const data = this.listDataToThisData(sender.object(indexPath))
+                            this.editHost(data, indexPath)
+                        }
                     }
                 ]
             },
@@ -177,7 +217,7 @@ class MainUI {
                                 })
                         } else {
                             this.kernel
-                                .wakeByWOL(thisData.mac)
+                                .wakeByWOL(thisData.mac, thisData.ip)
                                 .then(() => {
                                     $ui.success($l10n("WAKE_SUCCESS"))
                                 })
@@ -219,7 +259,7 @@ class MainUI {
         navigationView.navigationBarItems.setTitleView(searchBar).setRightButtons([
             {
                 symbol: "plus.circle",
-                tapped: () => this.addNewHost()
+                tapped: () => this.editHost()
             }
         ])
 
