@@ -265,7 +265,7 @@ class MainUI {
 
         navigationView.navigationBarTitle($l10n("WOL"))
         navigationView.navigationBar.setBackgroundColor(UIKit.primaryViewBackgroundColor)
-        navigationView.navigationBar.withoutStatusBarHeight()
+        navigationView.navigationBar.removeTopSafeArea()
         navigationView.setView(this.getListView())
 
         return navigationView.getPage()
