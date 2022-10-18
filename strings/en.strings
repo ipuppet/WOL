@@ -11,6 +11,7 @@
 "ADD_NEW" = "Add";
 "SEARCH" = "Search";
 "INFORMATION" = "Information";
+"EDIT" = "Edit";
 "SAVE" = "Save";
 "SAVE_SUCCESS" = "Save success";
 "SAVE_ERROR" = "Save failed";
@@ -24,3 +25,5 @@
 "WAKE_FAILED" = "Wake up failed";
 
 "ALERT_BEFORE_WAKE" = "Alert before wake up";
+
+"ALERT_TODAY_NODEJS" = "NodeJs can only run in the main program, please use SSH to wake up.";

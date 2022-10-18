@@ -1,4 +1,4 @@
-const { UIKit, Sheet, Kernel, FileStorage, Setting } = require("./lib/easy-jsbox")
+const { UIKit, Kernel, FileStorage, Setting } = require("./lib/easy-jsbox")
 
 class AppKernel extends Kernel {
     constructor(init = true) {
@@ -111,6 +111,20 @@ class AppUI {
         kernel.UIRender(mainUI.getNavigationView())
     }
 
+    static renderTodayUI() {
+        const kernel = new AppKernel()
+        kernel.useJsboxNav()
+        kernel.setNavButtons([
+            {
+                image: $image("assets/icon.png"),
+                handler: () => kernel.openInJsbox()
+            }
+        ])
+        const TodayUI = require("./ui/today")
+        const todayUI = new TodayUI(kernel)
+        kernel.UIRender(todayUI.getView())
+    }
+
     static renderUnsupported() {
         $intents.finish("不支持在此环境中运行")
         $ui.render({
@@ -145,6 +159,8 @@ module.exports = {
     run: () => {
         if ($app.env === $env.app) {
             AppUI.renderMainUI()
+        } else if ($app.env === $env.today) {
+            AppUI.renderTodayUI()
         } else if ($app.env === $env.siri) {
             Siri.intents()
         } else if ($app.env === $env.widget) {

@@ -11,6 +11,7 @@
 "ADD_NEW" = "添加";
 "SEARCH" = "搜索";
 "INFORMATION" = "信息";
+"EDIT" = "编辑";
 "SAVE" = "保存";
 "SAVE_SUCCESS" = "保存成功";
 "SAVE_ERROR" = "保存失败";
@@ -24,3 +25,5 @@
 "WAKE_FAILED" = "唤醒失败";
 
 "ALERT_BEFORE_WAKE" = "唤醒前询问";
+
+"ALERT_TODAY_NODEJS" = "NodeJs 只能在主程序运行，请使用 SSH 方式唤醒";

@@ -3,7 +3,7 @@ const { Sheet, Setting, NavigationBar, NavigationView, SearchBar, UIKit } = requ
 class MainUI {
     constructor(kernel) {
         this.kernel = kernel
-        this.listId = "mainui-list"
+        this.listId = "main-ui-list"
         this.savedHosts = []
         this.editingHostInfo = {}
         this.savedHosts = this.kernel.getSavedHosts()
@@ -113,6 +113,42 @@ class MainUI {
         $(this.listId).data = result
     }
 
+    async wakeup(item) {
+        if (this.kernel.setting.get("alertBeforeWake")) {
+            const alertResult = await $ui.alert({
+                title: $l10n("IS_WAKE_THIS"),
+                message: "MAC: " + item.mac,
+                actions: [{ title: $l10n("OK") }, { title: $l10n("Cancel") }]
+            })
+            if (alertResult.index === 1) {
+                return
+            }
+        }
+
+        if (this.kernel.setting.get("ssh")) {
+            this.kernel
+                .wakeBySSH(item.mac)
+                .then(() => {
+                    $ui.success($l10n("WAKE_SUCCESS"))
+                })
+                .catch(msg => {
+                    $ui.error(msg)
+                })
+        } else {
+            this.kernel
+                .wakeByWOL(item.mac, item.ip)
+                .then(() => {
+                    $ui.success($l10n("WAKE_SUCCESS"))
+                })
+                .catch(msg => {
+                    $ui.alert({
+                        title: $l10n("WAKE_FAILED"),
+                        message: msg
+                    })
+                })
+        }
+    }
+
     getListView() {
         return {
             type: "list",
@@ -204,48 +240,7 @@ class MainUI {
             layout: $layout.fill,
             events: {
                 didSelect: (sender, indexPath, data) => {
-                    const thisData = this.listDataToThisData(data)
-                    const wakeAction = () => {
-                        if (this.kernel.setting.get("ssh")) {
-                            this.kernel
-                                .wakeBySSH(thisData.mac)
-                                .then(() => {
-                                    $ui.success($l10n("WAKE_SUCCESS"))
-                                })
-                                .catch(msg => {
-                                    $ui.error(msg)
-                                })
-                        } else {
-                            this.kernel
-                                .wakeByWOL(thisData.mac, thisData.ip)
-                                .then(() => {
-                                    $ui.success($l10n("WAKE_SUCCESS"))
-                                })
-                                .catch(msg => {
-                                    $ui.alert({
-                                        title: $l10n("WAKE_FAILED"),
-                                        message: msg
-                                    })
-                                })
-                        }
-                    }
-                    if (this.kernel.setting.get("alertBeforeWake")) {
-                        $ui.alert({
-                            title: $l10n("IS_WAKE_THIS"),
-                            message: "MAC: " + thisData.mac,
-                            actions: [
-                                {
-                                    title: $l10n("OK"),
-                                    handler: () => {
-                                        wakeAction()
-                                    }
-                                },
-                                { title: $l10n("Cancel") }
-                            ]
-                        })
-                    } else {
-                        wakeAction()
-                    }
+                    this.wakeup(this.listDataToThisData(data))
                 }
             }
         }
