@@ -19,7 +19,7 @@ class AppKernel extends Kernel {
         const host = this.setting.get("sshHost")
         const username = this.setting.get("sshUsername")
         const password = this.setting.get("sshPassword")
-        const command = "/usr/bin/etherwake -i br-lan " + mac
+        const command = "/usr/bin/etherwake " + mac
         return new Promise((resolve, reject) => {
             $ssh.connect({
                 host: host,

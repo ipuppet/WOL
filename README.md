@@ -8,4 +8,4 @@
 
 > 如 OpenWrt
 
-开启 SSH 则尝试进行连接并使用 `/usr/bin/etherwake -i br-lan yourmac` 进行唤醒
+开启 SSH 则尝试进行连接并使用 `/usr/bin/etherwake yourmac` 进行唤醒
