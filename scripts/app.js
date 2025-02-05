@@ -1,17 +1,25 @@
 const { UIKit, Kernel, FileStorage, Setting } = require("./lib/easy-jsbox")
 
 class AppKernel extends Kernel {
+    static fileStorage = new FileStorage({
+        basePath: "shared://wol"
+    })
+
     constructor(init = true) {
         super()
         this.query = $context.query
         // FileStorage
-        this.fileStorage = new FileStorage()
+        this.fileStorage = AppKernel.fileStorage
         this.hostsDataFile = "hosts.json"
         // Setting
         this.setting = new Setting({ fileStorage: this.fileStorage })
         this.setting.loadConfig()
         if (init) {
             this.setting.useJsboxNav()
+        }
+
+        if ($file.exists("storage")) {
+            $file.delete("storage")
         }
     }
 
