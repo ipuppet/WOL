@@ -17,13 +17,14 @@ class AppKernel extends Kernel {
 
     wakeBySSH(mac) {
         const host = this.setting.get("sshHost")
+        const port = this.setting.get("sshPort", 22)
         const username = this.setting.get("sshUsername")
         const password = this.setting.get("sshPassword")
         const command = "/usr/bin/etherwake " + mac
         return new Promise((resolve, reject) => {
             $ssh.connect({
                 host: host,
-                port: 22,
+                port: port,
                 username: username,
                 password: password,
                 script: command,
